@@ -29,7 +29,7 @@ function formatLine($rawline)
 	$rawline=$control[1];
 	if (strlen($rawline)>40)
 	{
-		fwrite(STDERR, "Line $OL too long! ");
+		echo "Line $OL too long! ";
 		fwrite(STDERR, strlen($rawline)."\n");
 		return;
 	}

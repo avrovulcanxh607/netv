@@ -12,6 +12,7 @@ function lineRender($line,$control,$mpp)
 	$dh="";	// Reset the double height flag
 	$end="";	// Nothing to close yet
 	$out="";	// Prepare the output buffer
+	$everycode="";	// Once a background is declared, it should be on every code until it changes or is removed
 	foreach ($control as $key => $code)
 	{
 		if (is_array($code[0]))
@@ -23,7 +24,10 @@ function lineRender($line,$control,$mpp)
 			{
 				$last=($count-1);
 				if ($process[0] == "]")
+				{
 					$codesgroup[$last][1]='b';
+					$everycode=$codesgroup[$last][1].$codesgroup[$last][0];
+				}
 				else 
 				{
 					$control=codeControl($process[0]);	// This'll give us the html version of the code we need.
@@ -36,12 +40,13 @@ function lineRender($line,$control,$mpp)
 			{
 				$html.="$process[1]$process[0] ";
 			}
+			$lastesc+=$count;
 			$html.="$pre$control[0] ";
 			$out.=$html;
-			$out.='"> ';
-			$thisesc=strpos($line,"\e",($lastesc+$count));	// Add 'count': how many control codes there were in this group
+			$out.="$everycode".'"> ';
+			$thisesc=strpos($line,"\e",($lastesc));	// Add 'count': how many control codes there were in this group
 			if ($thisesc === false) $thisesc=40;	// no more control codes, go to the end of the line
-			$wait=substr($line,($lastesc+$count),($thisesc-$lastesc));
+			$wait=substr($line,($lastesc),($thisesc-$lastesc));
 			if ($control[1] === true)	// Is this a graphics code? 
 				$out.=contiguousGraphics($wait,0);	// Convert the text to graphics
 			else
@@ -58,7 +63,7 @@ function lineRender($line,$control,$mpp)
 				if ($i > 0) $end="</span>";	// If we've already done something, make sure to close it
 				$thisesc=strpos($line,"\e",$lastesc);
 				if ($thisesc === false) $thisesc=40;	// no more control codes, go to the end of the line
-				$out.="$end".'<span class="f'."$control[0]$dh".'"> ';	// Add the control code 
+				$out.="$end".'<span class="f'."$control[0]$dh $everycode".'"> ';	// Add the control code 
 				$wait=substr($line,$lastesc,($thisesc-$lastesc));	// and text to the output 'buffer'. NO, WAIT!!!
 				if ($control[1] === true)	// Is this a graphics code? 
 					$out.=contiguousGraphics($wait,0);	// Convert the text to graphics
@@ -78,7 +83,7 @@ function lineRender($line,$control,$mpp)
 				$thisesc=strpos($line,"\e",$lastesc);
 				if ($thisesc === false) $thisesc=40;	// no more control codes, go to the end of the line
 				if ($control!="dh") $start="f";
-				$out.="$end".'<span class="'."$start$control$dh".'"> ';	// Add the control code 
+				$out.="$end".'<span class="'."$start$control$dh $everycode".'"> ';	// Add the control code 
 				$out.=substr($line,$lastesc,($thisesc-$lastesc));	// and text to the output 'buffer'.
 				$lastesc=$thisesc;
 				$lastesc++;	// Add one so that it doesn't include the esc
