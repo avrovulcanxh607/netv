@@ -14,12 +14,41 @@ function lineRender($line,$control,$mpp)
 	$out="";	// Prepare the output buffer
 	foreach ($control as $key => $code)
 	{
-		//print_r($code);
 		if (is_array($code[0]))
 		{
-			$out.="group";	
-			// If its complicated, just don't bother for now while we sort other stuff out @todo
-			
+			$count=0;
+			$pre="f";
+			$codesgroup=array();
+			foreach($code as $process)
+			{
+				$last=($count-1);
+				if ($process[0] == "]")
+					$codesgroup[$last][1]='b';
+				else 
+				{
+					$control=codeControl($process[0]);	// This'll give us the html version of the code we need.
+					array_push($codesgroup,array($control[0],'f'));
+					$count++;
+				}
+			}
+			$html=str_repeat(' ',$count).'<span class="';
+			foreach($codesgroup as $process)
+			{
+				$html.="$process[1]$process[0] ";
+			}
+			$html.="$pre$control[0] ";
+			$out.=$html;
+			$out.='"> ';
+			$thisesc=strpos($line,"\e",($lastesc+$count));	// Add 'count': how many control codes there were in this group
+			if ($thisesc === false) $thisesc=40;	// no more control codes, go to the end of the line
+			$wait=substr($line,($lastesc+$count),($thisesc-$lastesc));
+			if ($control[1] === true)	// Is this a graphics code? 
+				$out.=contiguousGraphics($wait,0);	// Convert the text to graphics
+			else
+				$out.=$wait;
+			$lastesc=$thisesc;
+			$lastesc++;	// Add one so that it doesn't include the esc
+			$i++;
 		}
 		else
 		{
@@ -36,6 +65,8 @@ function lineRender($line,$control,$mpp)
 					// Need to add option for seperated graphics here @todo
 					// Also if this isn't graphics, nothing will get output. 
 					// Not sure if this is a problem yet
+				else
+					$out.=$wait;
 				$lastesc=$thisesc;
 				$lastesc++;	// Add one so that it doesn't include the esc
 				$i++;
