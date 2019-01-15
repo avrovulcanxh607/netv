@@ -53,7 +53,7 @@ foreach ($page[0] as $line)
 
 function getPage($mpp="100",$ss="0")
 {
-	$page=file("MENU$mpp.ttix");
+	$page=file("AUTO$mpp.tti");
 	$spages=array();
 	foreach ($page as $line)
 	{
